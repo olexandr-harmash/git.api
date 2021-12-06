@@ -7,17 +7,20 @@ import (
 
 	"github.com/google/go-github/github"
 	"github.com/olexandr-harmash/git.api/internal/app"
+	"github.com/olexandr-harmash/git.api/pkg/database/postgres"
 	"golang.org/x/oauth2"
 )
 
 type GitApi struct {
-	config *app.Config
-	client *github.Client
+	Config *app.Config
+	Client *github.Client
+	DB     *postgres.Postgres
 }
 
-func New(config *app.Config) *GitApi {
+func New(config *app.Config, db *postgres.Postgres) *GitApi {
 	return &GitApi{
-		config: config,
+		Config: config,
+		DB:     db,
 	}
 }
 
@@ -25,18 +28,18 @@ func (g *GitApi) Auth() context.Context {
 	ctx := context.Background()
 
 	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: g.config.AccessToken},
+		&oauth2.Token{AccessToken: g.Config.AccessToken},
 	)
 
 	tc := oauth2.NewClient(ctx, ts)
 
-	g.client = github.NewClient(tc)
+	g.Client = github.NewClient(tc)
 
 	return ctx
 }
 
-func (g *GitApi) Get(ctx context.Context) {
-	repo, _, err := g.client.Repositories.Get(ctx, g.config.RepositoryName, "Lessons")
+func (g *GitApi) Get(ctx context.Context) *app.Package {
+	repo, _, err := g.Client.Repositories.Get(ctx, g.Config.Own, g.Config.RepositoryName)
 
 	if err != nil {
 		fmt.Printf("Problem in getting repository information %v\n", err)
@@ -44,11 +47,10 @@ func (g *GitApi) Get(ctx context.Context) {
 	}
 
 	pack := &app.Package{
-		FullName:    *repo.FullName,
-		Description: *repo.Description,
-		ForksCount:  *repo.ForksCount,
-		StarsCount:  *repo.StargazersCount,
+		FullName:   *repo.FullName,
+		ForksCount: *repo.ForksCount,
+		StarsCount: *repo.StargazersCount,
 	}
 
-	fmt.Printf("%+v\n", pack)
+	return pack
 }

@@ -2,13 +2,12 @@ package app
 
 type Config struct {
 	AccessToken    string
+	Own            string
 	RepositoryName string
 }
 
 type Package struct {
-	FullName      string
-	Description   string
-	StarsCount    int
-	ForksCount    int
-	LastUpdatedBy string
+	FullName   string
+	StarsCount int
+	ForksCount int
 }

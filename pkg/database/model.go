@@ -8,6 +8,6 @@ type DataBase interface {
 	Open()
 	Close()
 
-	Read()
 	Write()
+	Read()
 }
